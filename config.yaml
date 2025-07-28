@@ -1,0 +1,20 @@
+server:
+  http_port: ":8080"
+  token: "supersecrettoken"
+  read_time_out: 5
+  write_time_out: 5
+
+db:
+  host: "localhost"
+  port: "5432"
+  db_name: "opp_db"
+  login: "opp_user"
+  password: "opp_password"
+  max_pool_connections: 10
+
+cache:
+  redis_addr: "localhost:6379"
+
+stage:
+  is_dev: true
+  log_file_path: ./logs.txt

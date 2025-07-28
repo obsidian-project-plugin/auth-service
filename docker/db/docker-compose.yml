@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: auth-svc-postgres
+    environment:
+      POSTGRES_DB: opp_db
+      POSTGRES_USER: opp_user
+      POSTGRES_PASSWORD: opp_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - auth-svc-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U opp_user -d opp_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  goose-migrate:
+    image: ghcr.io/kukymbr/goose-docker:3.24.3
+    container_name: auth-svc-goose-migrate
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=postgres port=5432 user=opp_user password=opp_password dbname=opp_db sslmode=disable
+    volumes:
+      - ../../migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - auth-svc-network
+
+volumes:
+  postgres_data:

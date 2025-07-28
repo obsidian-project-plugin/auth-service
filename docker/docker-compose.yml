@@ -1,0 +1,4 @@
+include:
+  - ./docker-compose.network.yaml
+  - cache/docker-compose.yml
+  - db/docker-compose.yml
