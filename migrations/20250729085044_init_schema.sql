@@ -5,7 +5,7 @@ SELECT 'up SQL query';
 CREATE SCHEMA dco;
 
 
-CREATE TABLE dco.users (
+CREATE TABLE obsidian.users (
                                          id UUID PRIMARY KEY,
                                          username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) UNIQUE,
@@ -14,10 +14,10 @@ CREATE TABLE dco.users (
     );
 
 
-CREATE INDEX  idx_users_email ON dco.users (email);
+CREATE INDEX  idx_users_email ON obsidian.users (email);
 
 
-CREATE TABLE dco.clients (
+CREATE TABLE obsidian.clients (
                                            id UUID PRIMARY KEY,
                                            name VARCHAR(255) NOT NULL,
     client_identifier VARCHAR(255) NOT NULL UNIQUE,
@@ -26,13 +26,13 @@ CREATE TABLE dco.clients (
     );
 
 
-CREATE INDEX  idx_clients_client_identifier ON dco.clients (client_identifier);
+CREATE INDEX  idx_clients_client_identifier ON obsidian.clients (client_identifier);
 
 
-CREATE TABLE dco.user_devices (
+CREATE TABLE obsidian.user_devices (
                                                 id UUID PRIMARY KEY,
-                                                user_id UUID REFERENCES dco.users(id) ON DELETE CASCADE,
-    client_id UUID REFERENCES dco.clients(id) ON DELETE CASCADE,
+                                                user_id UUID REFERENCES obsidian.users(id) ON DELETE CASCADE,
+    client_id UUID REFERENCES obsidian.clients(id) ON DELETE CASCADE,
     device_name VARCHAR(255),
     client_user_id VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -40,7 +40,7 @@ CREATE TABLE dco.user_devices (
                                                                                           );
 
 
-CREATE OR REPLACE FUNCTION dco.update_updated_at()
+CREATE OR REPLACE FUNCTION obsidian.update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = now();
@@ -49,14 +49,14 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER users_update_trigger
-    BEFORE UPDATE ON dco.users
+    BEFORE UPDATE ON obsidian.users
     FOR EACH ROW
-    EXECUTE PROCEDURE dco.update_updated_at();
+    EXECUTE PROCEDURE obsidian.update_updated_at();
 
 CREATE TRIGGER clients_update_trigger
-    BEFORE UPDATE ON dco.clients
+    BEFORE UPDATE ON obsidian.clients
     FOR EACH ROW
-    EXECUTE PROCEDURE dco.update_updated_at();
+    EXECUTE PROCEDURE obsidian.update_updated_at();
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
