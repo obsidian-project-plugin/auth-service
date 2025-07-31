@@ -21,7 +21,7 @@ func (authRouter *AuthRouter) RegisterRoutes(routerGroup *gin.RouterGroup) {
 	{
 
 		{
-			authHandler := authHandlers.Init(authRouter.TokenSvc)
+			authHandler := authHandlers.NewTokenHandler(authRouter.TokenSvc)
 			authGroup.POST("/login", authHandler.Login)
 			authGroup.POST("/refresh", authHandler.Refresh)
 		}

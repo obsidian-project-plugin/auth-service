@@ -28,7 +28,7 @@ func NewTokenService(secret string, accessTTL time.Duration) TokenService {
 	}
 }
 
-func (s *tokenService) GenerateTokens(user domain.User, app domain.App) (string, string, error) {
+func (tokenService *tokenService) GenerateTokens(user domain.User, app domain.App) (string, string, error) {
 	now := time.Now()
 	randomJTI := uuid.NewString()
 
@@ -39,11 +39,11 @@ func (s *tokenService) GenerateTokens(user domain.User, app domain.App) (string,
 		TokenType: "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessTTL)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(tokenService.accessTTL)),
 			ID:        randomJTI,
 		},
 	}
-	accessToken, err := s.sign(accessClaims)
+	accessToken, err := tokenService.sign(accessClaims)
 	if err != nil {
 		return "", "", err
 	}
@@ -58,7 +58,7 @@ func (s *tokenService) GenerateTokens(user domain.User, app domain.App) (string,
 			ID:       randomJTI,
 		},
 	}
-	refreshToken, err := s.sign(refreshClaims)
+	refreshToken, err := tokenService.sign(refreshClaims)
 	if err != nil {
 		return "", "", err
 	}
@@ -66,12 +66,12 @@ func (s *tokenService) GenerateTokens(user domain.User, app domain.App) (string,
 	return accessToken, refreshToken, nil
 }
 
-func (s *tokenService) RefreshAccessToken(refreshToken, tokenID string) (string, error) {
+func (tokenService *tokenService) RefreshAccessToken(refreshToken, tokenID string) (string, error) {
 	tok, err := jwt.ParseWithClaims(refreshToken, &domain.CustomClaims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
-		return s.secret, nil
+		return tokenService.secret, nil
 	})
 	if err != nil {
 		return "", fmt.Errorf("invalid refresh token: %w", err)
@@ -95,18 +95,18 @@ func (s *tokenService) RefreshAccessToken(refreshToken, tokenID string) (string,
 		TokenType: "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessTTL)),
+			ExpiresAt: jwt.NewNumericDate(now.Add(tokenService.accessTTL)),
 			ID:        tokenID,
 		},
 	}
-	newToken, err := s.sign(newClaims)
+	newToken, err := tokenService.sign(newClaims)
 	if err != nil {
 		return "", fmt.Errorf("could not generate access token: %w", err)
 	}
 	return newToken, nil
 }
 
-func (s *tokenService) sign(claims domain.CustomClaims) (string, error) {
+func (tokenService *tokenService) sign(claims domain.CustomClaims) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return t.SignedString(s.secret)
+	return t.SignedString(tokenService.secret)
 }
