@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"github.com/spf13/viper"
+	"os"
+)
 
 type ServerConfig struct {
 	HTTPPort     string `mapstructure:"http_port"`
@@ -29,22 +33,37 @@ type Stage struct {
 
 type Config struct {
 	Server ServerConfig `mapstructure:"server"`
+	Github GithubConfig `mapstructure:"github"`
 	DB     DBConfig     `mapstructure:"db"`
 	Cache  CacheConfig  `mapstructure:"cache"`
 	Stage  Stage        `mapstructure:"stage"`
 }
+type GithubConfig struct {
+	ClientID     string `mapstructure:"client_id"`
+	ClientSecret string
+	RedirectURI  string   `mapstructure:"redirect_uri"`
+	Scopes       []string `mapstructure:"scopes"`
+}
 
-func Load() (*Config, error) {
+func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Ошибка чтения конфиг файла: %w", err)
 	}
+
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Ошибка разгрузки конфигурации: %w", err)
 	}
+
+	cfg.Github.ClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
+	if cfg.Github.ClientSecret == "" {
+		return nil, fmt.Errorf("GITHUB_CLIENT_SECRET переменная окружения не задана")
+	}
+
 	return &cfg, nil
+
 }
