@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -39,7 +41,9 @@ func Run() {
 func loadConfig() *config.Config {
 	cfg, err := config.Load()
 	if err != nil {
-		logging.Fatal("Не удалось загрузить конфиг:", err)
+		//logging.Fatal("Не удалось загрузить конфиг:", err)
+		fmt.Fprintf(os.Stderr, "Не удалось загрузить конфиг: %v\n", err)
+		os.Exit(1)
 	}
 	logging.Init(cfg)
 	return cfg
