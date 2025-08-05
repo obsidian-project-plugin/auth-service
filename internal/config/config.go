@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"github.com/obsidian-project-plugin/auth-service/internal/telemetry/logging"
 	"github.com/spf13/viper"
 	"os"
 )
@@ -51,17 +53,23 @@ func LoadConfig(path string) (*Config, error) {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("Ошибка чтения конфиг файла: %w", err)
+
+		logging.Error(fmt.Sprintf("Ошибка чтения конфиг файла: %s", err.Error()))
+		return nil, errors.New("Ошибка чтения конфиг файла: " + err.Error())
 	}
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("Ошибка разгрузки конфигурации: %w", err)
+
+		logging.Error(fmt.Sprintf("Ошибка разгрузки конфигурации: %s", err.Error()))
+		return nil, errors.New("Ошибка разгрузки конфигурации: " + err.Error())
 	}
 
 	cfg.Github.ClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
 	if cfg.Github.ClientSecret == "" {
-		return nil, fmt.Errorf("GITHUB_CLIENT_SECRET переменная окружения не задана")
+
+		logging.Error("GITHUB_CLIENT_SECRET переменная окружения не задана")
+		return nil, errors.New("GITHUB_CLIENT_SECRET переменная окружения не задана")
 	}
 
 	return &cfg, nil
