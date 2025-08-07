@@ -39,7 +39,7 @@ func Run() {
 
 // loadConfig загружает конфигурацию приложения и инициализирует логирование.
 func loadConfig() *config.Config {
-	cfg, err := config.Load()
+	cfg, err := config.LoadConfig("config.yaml")
 	if err != nil {
 		//logging.Fatal("Не удалось загрузить конфиг:", err)
 		fmt.Fprintf(os.Stderr, "Не удалось загрузить конфиг: %v\n", err)
