@@ -1,29 +1,27 @@
-// internal/telemetry/logging/logging.go
 package logging
 
 import (
+	"os"
+
+	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
 )
 
 var (
 	Logger *zap.SugaredLogger
 )
 
-func Init(logFilePath string, isDev bool) {
-	var sugarLogger *zap.SugaredLogger
-	if isDev {
-		sugarLogger = initDevelopment()
-	} else {
-		sugarLogger = initProduction(logFilePath)
+func Init(cfg *config.Config) {
+	if cfg.Stage.IsDev {
+		initDevelopment()
+		return
 	}
-
-	Logger = sugarLogger
+	initProduction(cfg.Stage.LogFilePath)
 }
 
-func initDevelopment() *zap.SugaredLogger {
+func initDevelopment() {
 	encoderCfg := zap.NewDevelopmentEncoderConfig()
 	encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -37,10 +35,10 @@ func initDevelopment() *zap.SugaredLogger {
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.WarnLevel),
 	)
-	return l.Sugar()
+	Logger = l.Sugar()
 }
 
-func initProduction(logFilePath string) *zap.SugaredLogger {
+func initProduction(logFilePath string) {
 	encoderCfg := zap.NewProductionEncoderConfig()
 	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
 	encoderCfg.EncodeDuration = zapcore.StringDurationEncoder
@@ -64,57 +62,41 @@ func initProduction(logFilePath string) *zap.SugaredLogger {
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.ErrorLevel),
 	)
-	return l.Sugar()
+	Logger = l.Sugar()
 }
 
 func Info(args ...interface{}) {
-	if Logger != nil {
-		Logger.Info(args...)
-	}
+	Logger.Info(args...)
 }
 
 func Infof(template string, args ...interface{}) {
-	if Logger != nil {
-		Logger.Infof(template, args...)
-	}
+	Logger.Infof(template, args...)
 }
 
 func Debug(args ...interface{}) {
-	if Logger != nil {
-		Logger.Debug(args...)
-	}
+	Logger.Debug(args...)
 }
 
 func Warn(args ...interface{}) {
-	if Logger != nil {
-		Logger.Warn(args...)
-	}
+	Logger.Warn(args...)
 }
 
 func Error(args ...interface{}) {
-	if Logger != nil {
-		Logger.Error(args...)
-		_ = Logger.Sync()
-	}
+	Logger.Error(args...)
+	_ = Logger.Sync()
+	os.Exit(1)
 }
 
 func Errorf(template string, args ...interface{}) {
-	if Logger != nil {
-		Logger.Errorf(template, args...)
-		_ = Logger.Sync()
-	}
+	Logger.Errorf(template, args...)
+	_ = Logger.Sync()
+	os.Exit(1)
 }
 
 func Fatal(args ...interface{}) {
-	if Logger != nil {
-		Logger.Fatal(args...)
-		_ = Logger.Sync()
-	}
+	Logger.Fatal(args...)
 }
 
 func Fatalf(template string, args ...interface{}) {
-	if Logger != nil {
-		Logger.Fatalf(template, args...)
-		_ = Logger.Sync()
-	}
+	Logger.Fatalf(template, args...)
 }

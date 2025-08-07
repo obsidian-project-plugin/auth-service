@@ -1,12 +1,6 @@
 package config
 
-import (
-	"errors"
-	"fmt"
-	"github.com/obsidian-project-plugin/auth-service/internal/telemetry/logging"
-	"github.com/spf13/viper"
-	"os"
-)
+import "github.com/spf13/viper"
 
 type ServerConfig struct {
 	HTTPPort     string `mapstructure:"http_port"`
@@ -35,44 +29,23 @@ type Stage struct {
 
 type Config struct {
 	Server ServerConfig `mapstructure:"server"`
-	Github GithubConfig `mapstructure:"github"`
 	DB     DBConfig     `mapstructure:"db"`
 	Cache  CacheConfig  `mapstructure:"cache"`
 	Stage  Stage        `mapstructure:"stage"`
 }
-type GithubConfig struct {
-	ClientID     string `mapstructure:"client_id"`
-	ClientSecret string
-	RedirectURI  string   `mapstructure:"redirect_uri"`
-	Scopes       []string `mapstructure:"scopes"`
-}
 
-func LoadConfig(path string) (*Config, error) {
+func Load() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("../..")
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-
-		logging.Error(fmt.Sprintf("Ошибка чтения конфиг файла: %s", err.Error()))
-		return nil, errors.New("Ошибка чтения конфиг файла: " + err.Error())
+		return nil, err
 	}
-
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
-
-		logging.Error(fmt.Sprintf("Ошибка разгрузки конфигурации: %s", err.Error()))
-		return nil, errors.New("Ошибка разгрузки конфигурации: " + err.Error())
+		return nil, err
 	}
-
-	cfg.Github.ClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
-	if cfg.Github.ClientSecret == "" {
-
-		logging.Error("GITHUB_CLIENT_SECRET переменная окружения не задана")
-		return nil, errors.New("GITHUB_CLIENT_SECRET переменная окружения не задана")
-	}
-
 	return &cfg, nil
-
 }

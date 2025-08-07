@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"github.com/obsidian-project-plugin/auth-service/internal/telemetry/logging"
 )

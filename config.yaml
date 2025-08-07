@@ -18,8 +18,3 @@ cache:
 stage:
   is_dev: true
   log_file_path: ./logs.txt
-  github:
-    client_id: "Ov23li8vNj3ti3wXGMP8"
-    client_secret: "0d5ac353ba7defa83d0745f9d03c3f127d52198c"
-    redirect_uri: "https://d4d7b25d42f1.ngrok-free.app/api/auth/github/callback"
-    scopes: "user:email"
