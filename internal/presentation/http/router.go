@@ -73,4 +73,4 @@ func (h *Handler) GoogleCallback(c *gin.Context) {
 func SetupRoutes(router *gin.Engine, handler *Handler) {
 	router.GET("api/auth/google/initiate", handler.InitiateGoogleAuth)
 	router.GET("api/auth/google/callback", handler.GoogleCallback)
-}
+} //
