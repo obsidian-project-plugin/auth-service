@@ -23,3 +23,10 @@ stage:
     client_secret: "0d5ac353ba7defa83d0745f9d03c3f127d52198c"
     redirect_uri: "https://d4d7b25d42f1.ngrok-free.app/api/auth/github/callback"
     scopes: "user:email"
+
+    google:
+      client_id: "226527352930-9nre7c6hc00v7sp8v3647ch1m406ibr8.apps.googleusercontent.com"
+      redirect_uri: "https://e1a804c75010.ngrok-free.app/api/auth/google/callback"
+      scopes:
+        - "email"
+        - "profile"

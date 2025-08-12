@@ -38,8 +38,6 @@ CREATE TABLE obsidian.user_devices (
                                        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                                        last_used_at TIMESTAMP WITH TIME ZONE
 );
-
-
 CREATE OR REPLACE FUNCTION obsidian.update_updated_at()
     RETURNS TRIGGER AS $$
 BEGIN
@@ -51,12 +49,14 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER users_update_trigger
     BEFORE UPDATE ON obsidian.users
     FOR EACH ROW
-    EXECUTE PROCEDURE obsidian.update_updated_at();
+EXECUTE PROCEDURE obsidian.update_updated_at();
 
 CREATE TRIGGER clients_update_trigger
     BEFORE UPDATE ON obsidian.clients
     FOR EACH ROW
-    EXECUTE PROCEDURE obsidian.update_updated_at();
+EXECUTE PROCEDURE obsidian.update_updated_at();
+
+
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';

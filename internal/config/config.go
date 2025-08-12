@@ -34,11 +34,15 @@ type Stage struct {
 }
 
 type Config struct {
-	Server ServerConfig `mapstructure:"server"`
-	Github GithubConfig `mapstructure:"github"`
-	DB     DBConfig     `mapstructure:"db"`
-	Cache  CacheConfig  `mapstructure:"cache"`
-	Stage  Stage        `mapstructure:"stage"`
+	Server             ServerConfig `mapstructure:"server"`
+	Github             GithubConfig `mapstructure:"github"`
+	DB                 DBConfig     `mapstructure:"db"`
+	Cache              CacheConfig  `mapstructure:"cache"`
+	Stage              Stage        `mapstructure:"stage"`
+	GoogleClientID     string       `mapstructure:"google_client_id"`
+	GoogleRedirectURI  string       `mapstructure:"google_redirect_uri"`
+	GoogleScopes       []string     `mapstructure:"google_scopes"`
+	GoogleClientSecret string       `mapstructure:"google_client_secret"`
 }
 type GithubConfig struct {
 	ClientID     string `mapstructure:"client_id"`
@@ -51,6 +55,7 @@ func LoadConfig(path string) (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("../..")
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 
