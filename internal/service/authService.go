@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"github.com/obsidian-project-plugin/auth-service/internal/domain"
+
 	"golang.org/x/oauth2"
 	"log"
 )
