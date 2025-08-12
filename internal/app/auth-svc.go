@@ -45,7 +45,7 @@ func loadConfig() *config.Config {
 		fmt.Fprintf(os.Stderr, "Не удалось загрузить конфиг: %v\n", err)
 		os.Exit(1)
 	}
-	logging.Init(cfg)
+	logging.Init(cfg) //
 	return cfg
 }
 

@@ -34,11 +34,18 @@ type Stage struct {
 }
 
 type Config struct {
-	Server ServerConfig `mapstructure:"server"`
-	Github GithubConfig `mapstructure:"github"`
-	DB     DBConfig     `mapstructure:"db"`
-	Cache  CacheConfig  `mapstructure:"cache"`
-	Stage  Stage        `mapstructure:"stage"`
+	Server              ServerConfig `mapstructure:"server"`
+	Github              GithubConfig `mapstructure:"github"`
+	DB                  DBConfig     `mapstructure:"db"`
+	Cache               CacheConfig  `mapstructure:"cache"`
+	Stage               Stage        `mapstructure:"stage"`
+	GoogleClientID      string       `mapstructure:"google_client_id"`
+	GoogleTokenURL      string       `mapstructure:"google_token_url"`
+	GoogleGrantType     string       `mapstructure:"google_grant_type"`
+	GoogleRedirectURI   string       `mapstructure:"google_redirect_uri"`
+	GoogleScopes        []string     `mapstructure:"google_scopes"`
+	GoogleClientSecret  string       `mapstructure:"google_client_secret"`
+	GoogleAuthURLPrefix string       `mapstructure:"google_auth_url_prefix"`
 }
 type GithubConfig struct {
 	ClientID     string `mapstructure:"client_id"`
