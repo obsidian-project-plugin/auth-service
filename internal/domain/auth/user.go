@@ -1,6 +1,6 @@
 package auth
 
-type User struct {
+type JsonFile struct {
 	ID            string `json:"id"`             // Внутренний ID пользователя в вашей системе
 	GoogleSub     string `json:"google_sub"`     // ID пользователя в Google (sub claim)
 	Email         string `json:"email"`          // Email пользователя

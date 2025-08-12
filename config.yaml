@@ -20,13 +20,19 @@ stage:
   log_file_path: ./logs.txt
   github:
     client_id: "Ov23li8vNj3ti3wXGMP8"
-    client_secret: "0d5ac353ba7defa83d0745f9d03c3f127d52198c"
     redirect_uri: "https://d4d7b25d42f1.ngrok-free.app/api/auth/github/callback"
     scopes: "user:email"
 
+    jwt:
+      jwt_secret: ""
+
     google:
       client_id: "226527352930-9nre7c6hc00v7sp8v3647ch1m406ibr8.apps.googleusercontent.com"
+      client_secret: ""
       redirect_uri: "https://e1a804c75010.ngrok-free.app/api/auth/google/callback"
+      google_token_url: "https://oauth2.googleapis.com/token"
+      google_grant_type: "authorization_code"
+      google_auth_url_prefix: "https://accounts.google.com/o/oauth2/v2/auth?"
       scopes:
         - "email"
         - "profile"

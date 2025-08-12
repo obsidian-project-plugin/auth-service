@@ -4,15 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
+	"github.com/obsidian-project-plugin/auth-service/internal/app/utils"
 	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"github.com/obsidian-project-plugin/auth-service/internal/domain/auth"
 	"github.com/obsidian-project-plugin/auth-service/internal/infrastructure/google"
 	"github.com/obsidian-project-plugin/auth-service/internal/infrastructure/redis"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 )
@@ -23,6 +26,7 @@ type GoogleAuthService struct {
 	RedisClient *redis.RedisClient
 	db          *sql.DB
 	jwtSecret   string
+	jwtService  auth.JWTService
 }
 
 func NewGoogleAuthService(cfg config.Config, googleOAuth *google.GoogleOAuth, redisClient *redis.RedisClient, db *sql.DB) *GoogleAuthService {
@@ -48,12 +52,36 @@ func (s *GoogleAuthService) GetAuthURL(state string) string {
 	return s.googleOAuth.GetAuthURL(state)
 }
 
-type AuthResult struct {
-	AccessToken  string
-	RefreshToken string
-}
+func (s *GoogleAuthService) GetUserInfo(accessToken string) (*google.UserInfo, error) {
+	userInfoURL := "https://www.googleapis.com/oauth2/v3/userinfo" // URL для получения информации о пользователе
+	req, err := utils.NewHTTPRequest("GET", userInfoURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при создании запроса: %w", err)
+	}
 
-func (s *GoogleAuthService) Authenticate(ctx context.Context, code string, state string) (*AuthResult, error) {
+	req.Header.Set("Authorization", "Bearer "+accessToken) // Добавляем заголовок Authorization
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при запросе информации о пользователе: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при чтении тела ответа: %w", err)
+	}
+
+	var userInfo google.UserInfo
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при разборе JSON: %w", err)
+	}
+
+	return &userInfo, nil
+}
+func (s *GoogleAuthService) Authenticate(ctx context.Context, code string, state string) (*auth.AuthResult, error) {
 
 	storedState, err := s.RedisClient.Get(ctx, "google_oauth:state:"+state)
 	if err != nil {
@@ -73,7 +101,7 @@ func (s *GoogleAuthService) Authenticate(ctx context.Context, code string, state
 		return nil, fmt.Errorf("Ошибка обмена токена на код: %w", err)
 	}
 
-	userInfo, err := s.googleOAuth.GetUserInfo(tokenResp.AccessToken)
+	userInfo, err := s.GetUserInfo(tokenResp.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("Ошибка в получении информации о пользователи: %w", err)
 	}
@@ -84,7 +112,7 @@ func (s *GoogleAuthService) Authenticate(ctx context.Context, code string, state
 	}
 
 	if user == nil {
-		user = &auth.User{
+		user := &auth.JsonFile{
 			ID:            uuid.New().String(),
 			GoogleSub:     userInfo.Sub,
 			Email:         userInfo.Email,
@@ -109,18 +137,17 @@ func (s *GoogleAuthService) Authenticate(ctx context.Context, code string, state
 		return nil, fmt.Errorf("не удалось сохранить токен обновления: %w", err)
 	}
 
-	return &AuthResult{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return &auth.AuthResult{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
 func (s *GoogleAuthService) generateJWTTokens(userID string) (string, string, error) {
 
-	accessToken, err := s.generateJWT(userID, time.Minute*15)
+	accessToken, err := s.jwtService.GenerateJWT(userID, time.Minute*15)
 	if err != nil {
 		return "", "", fmt.Errorf("ошибка в генерации access token: %w", err)
 	}
 
-	// Generate refresh token
-	refreshToken, err := s.generateJWT(userID, time.Hour*24*30)
+	refreshToken, err := s.jwtService.GenerateJWT(userID, time.Hour*24*30)
 	if err != nil {
 		return "", "", fmt.Errorf("ошибка в генерации refresh token: %w", err)
 	}
@@ -128,26 +155,11 @@ func (s *GoogleAuthService) generateJWTTokens(userID string) (string, string, er
 	return accessToken, refreshToken, nil
 }
 
-func (s *GoogleAuthService) generateJWT(userID string, expiration time.Duration) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(expiration).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString(s.jwtSecret)
-	if err != nil {
-		return "", fmt.Errorf("не удалось подписать токен: %w", err)
-	}
-
-	return signedToken, nil
-}
-
-func (s *GoogleAuthService) findByGoogleSub(ctx context.Context, googleSub string) (*auth.User, error) {
+func (s *GoogleAuthService) findByGoogleSub(ctx context.Context, googleSub string) (*auth.JsonFile, error) {
 	query := `SELECT id, google_sub, email, name, given_name, family_name, picture, email_verified, created_at, updated_at FROM users WHERE google_sub = $1`
 
 	row := s.db.QueryRowContext(ctx, query, googleSub)
-	user := &auth.User{}
+	user := &auth.JsonFile{}
 
 	err := row.Scan(&user.ID, &user.GoogleSub, &user.Email, &user.Name, &user.GivenName, &user.FamilyName, &user.EmailVerified)
 	if err != nil {
@@ -160,7 +172,7 @@ func (s *GoogleAuthService) findByGoogleSub(ctx context.Context, googleSub strin
 	return user, nil
 }
 
-func (s *GoogleAuthService) createUser(ctx context.Context, user *auth.User) error {
+func (s *GoogleAuthService) createUser(ctx context.Context, user *auth.JsonFile) error {
 	query := `
 		INSERT INTO users (id, google_sub, email, name, given_name, family_name, picture, email_verified, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
