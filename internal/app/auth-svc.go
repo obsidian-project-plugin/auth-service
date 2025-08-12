@@ -2,9 +2,7 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,12 +20,7 @@ import (
 
 // Run запускает приложение: настраивает всё, запускает сервер и обрабатывает корректное завершение.
 func Run() {
-	cfg, err := loadConfig("config.yaml")
-	if err != nil {
-
-		fmt.Fprintf(os.Stderr, "Не удалось загрузить конфигурацию: %v\n", err)
-		os.Exit(1)
-	}
+	cfg := loadConfig()
 
 	ctx, stop := newSignalContext()
 	defer stop()
@@ -45,23 +38,15 @@ func Run() {
 }
 
 // loadConfig загружает конфигурацию приложения и инициализирует логирование.
-func loadConfig(path string) (*config.Config, error) {
-	file, err := os.Open(path)
+func loadConfig() *config.Config {
+	cfg, err := config.LoadConfig("config.yaml")
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, os.ErrNotExist
-		}
-		return nil, fmt.Errorf("ошибка открытия файла конфигурации: %w", err)
+		//logging.Fatal("Не удалось загрузить конфиг:", err)
+		fmt.Fprintf(os.Stderr, "Не удалось загрузить конфиг: %v\n", err)
+		os.Exit(1)
 	}
-	defer file.Close()
-
-	var cfg config.Config
-	decoder := yaml.NewDecoder(file)
-	if err := decoder.Decode(&cfg); err != nil {
-		return nil, fmt.Errorf("ошибка декодирования конфигурации: %w", err)
-	}
-
-	return &cfg, nil
+	logging.Init(cfg)
+	return cfg
 }
 
 // newSignalContext возвращает context.Context, который отменится при получении SIGINT/SIGTERM.
