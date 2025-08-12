@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -53,13 +54,18 @@ func loadConfig(path string) (*config.Config, error) {
 		}
 		return nil, fmt.Errorf("ошибка открытия файла конфигурации: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Println("Ошибка при закрытии файла конфигурации:", err)
+		}
+	}()
 
 	var cfg config.Config
 	decoder := yaml.NewDecoder(file)
 	if err := decoder.Decode(&cfg); err != nil {
 		return nil, fmt.Errorf("ошибка декодирования конфигурации: %w", err)
 	}
+
 	return &cfg, nil
 }
 
