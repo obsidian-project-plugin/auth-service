@@ -59,5 +59,5 @@ func (g *GoogleOAuth) ExchangeCodeForToken(code string) (*TokenResponse, error) 
 		return nil, fmt.Errorf("ошибка при разборе JSON: %w", err)
 	}
 
-	return &tokenResp, nil
+	return &tokenResp, nil //
 }

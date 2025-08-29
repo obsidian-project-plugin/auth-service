@@ -26,7 +26,7 @@ type DBConfig struct {
 
 type CacheConfig struct {
 	RedisAddr string `mapstructure:"redis_addr"`
-}
+} //
 
 type Stage struct {
 	IsDev       bool   `mapstructure:"is_dev"`
@@ -87,7 +87,5 @@ func LoadConfig(path string) (*Config, error) {
 		logging.Error("GITHUB_CLIENT_SECRET переменная окружения не задана")
 		return nil, errors.New("GITHUB_CLIENT_SECRET переменная окружения не задана")
 	}
-
 	return &cfg, nil
-
 }

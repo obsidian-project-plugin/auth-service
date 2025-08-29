@@ -34,7 +34,7 @@ func (h *Handler) InitiateGoogleAuth(c *gin.Context) {
 	state, err := h.authService.GenerateState()
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
-		return
+		return //
 	}
 
 	ctx := c.Request.Context()
