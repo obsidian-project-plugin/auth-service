@@ -2,9 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"github.com/obsidian-project-plugin/auth-service/internal/config/db"
-	"github.com/obsidian-project-plugin/auth-service/internal/presentation/http/auth/router"
 	"github.com/obsidian-project-plugin/auth-service/internal/service"
 	"net/http"
 	"time"

@@ -32,7 +32,15 @@ type Stage struct {
 	IsDev       bool   `mapstructure:"is_dev"`
 	LogFilePath string `mapstructure:"log_file_path"`
 }
-
+type GoogleConfig struct {
+	ClientID      string `mapstructure:"client_id"`
+	ClientSecret  string
+	RedirectURI   string   `mapstructure:"redirect_uri"`
+	Scopes        []string `mapstructure:"scopes"`
+	AuthURLPrefix string   `mapstructure:"auth_url_prefix"`
+	TokenURL      string   `mapstructure:"token_url"`
+	GrantType     string   `mapstructure:"grant_type"`
+}
 type Config struct {
 	Server              ServerConfig `mapstructure:"server"`
 	Github              GithubConfig `mapstructure:"github"`

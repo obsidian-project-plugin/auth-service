@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/obsidian-project-plugin/auth-service/internal/app/utils"
+	"github.com/obsidian-project-plugin/auth-service/internal/config"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/obsidian-project-plugin/auth-service/internal/config"
 )
 
 type GoogleOAuth struct {
@@ -22,26 +21,26 @@ func NewGoogleOAuth(cfg *config.Config) *GoogleOAuth {
 }
 
 func (g *GoogleOAuth) GetAuthURL(state string) string {
-	v := url.Values{}
-	v.Set("client_id", g.cfg.GoogleClientID)
-	v.Set("redirect_uri", g.cfg.GoogleRedirectURI)
-	v.Set("response_type", "code")
+	values := url.Values{}
+	values.Set("client_id", g.cfg.GoogleClientID)
+	values.Set("redirect_uri", g.cfg.GoogleRedirectURI)
+	values.Set("response_type", "code")
 	scopes := strings.Split(strings.Join(g.cfg.GoogleScopes, ","), " ")
-	v.Set("scope", strings.Join(scopes, " ")) // "email profile"
-	v.Set("state", state)
+	values.Set("scope", strings.Join(scopes, " ")) // "email profile"
+	values.Set("state", state)
 
-	return g.cfg.GoogleAuthURLPrefix + v.Encode()
+	return g.cfg.GoogleAuthURLPrefix + values.Encode()
 }
 
 func (g *GoogleOAuth) ExchangeCodeForToken(code string) (*TokenResponse, error) {
-	v := url.Values{}
-	v.Set("code", code)
-	v.Set("client_id", g.cfg.GoogleClientID)
-	v.Set("client_secret", g.cfg.GoogleClientSecret)
-	v.Set("redirect_uri", g.cfg.GoogleRedirectURI)
-	v.Set("grant_type", g.cfg.GoogleGrantType)
+	values := url.Values{}
+	values.Set("code", code)
+	values.Set("client_id", g.cfg.GoogleClientID)
+	values.Set("client_secret", g.cfg.GoogleClientSecret)
+	values.Set("redirect_uri", g.cfg.GoogleRedirectURI)
+	values.Set("grant_type", g.cfg.GoogleGrantType)
 
-	resp, err := utils.PostForm(g.cfg.GoogleTokenURL, v) // Use the function from the utils package
+	resp, err := utils.PostForm(g.cfg.GoogleTokenURL, values)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка при запросе токена: %w", err)
 	}
