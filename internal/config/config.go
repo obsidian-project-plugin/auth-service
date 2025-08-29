@@ -26,13 +26,21 @@ type DBConfig struct {
 
 type CacheConfig struct {
 	RedisAddr string `mapstructure:"redis_addr"`
-}
+} //
 
 type Stage struct {
 	IsDev       bool   `mapstructure:"is_dev"`
 	LogFilePath string `mapstructure:"log_file_path"`
 }
-
+type GoogleConfig struct {
+	ClientID      string `mapstructure:"client_id"`
+	ClientSecret  string
+	RedirectURI   string   `mapstructure:"redirect_uri"`
+	Scopes        []string `mapstructure:"scopes"`
+	AuthURLPrefix string   `mapstructure:"auth_url_prefix"`
+	TokenURL      string   `mapstructure:"token_url"`
+	GrantType     string   `mapstructure:"grant_type"`
+}
 type Config struct {
 	Server              ServerConfig `mapstructure:"server"`
 	Github              GithubConfig `mapstructure:"github"`
@@ -79,7 +87,5 @@ func LoadConfig(path string) (*Config, error) {
 		logging.Error("GITHUB_CLIENT_SECRET переменная окружения не задана")
 		return nil, errors.New("GITHUB_CLIENT_SECRET переменная окружения не задана")
 	}
-
 	return &cfg, nil
-
 }
